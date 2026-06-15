@@ -33,32 +33,57 @@ def validate_question(question: str, settings: Settings) -> str:
     cleaned = question.strip()
     if len(cleaned) < settings.min_question_chars:
         raise GuardrailViolation(
-            f"The question is too short. Minimum length is {settings.min_question_chars} characters."
+            (
+                "Sua pergunta esta muito curta para a Maria responder com qualidade. "
+                f"Use pelo menos {settings.min_question_chars} caracteres. "
+                "Exemplo: 'quais produtos mais venderam hoje?'."
+            )
         )
     if len(cleaned) > settings.max_question_chars:
         raise GuardrailViolation(
-            f"The question is too long. Maximum length is {settings.max_question_chars} characters."
+            (
+                "Sua pergunta ficou grande demais para uma entrada unica. "
+                f"O limite atual e de {settings.max_question_chars} caracteres. "
+                "Tente dividir em duas perguntas menores."
+            )
         )
     for pattern in settings.blocked_patterns:
         if re.search(pattern, cleaned):
-            raise GuardrailViolation(f"Blocked by guardrail pattern: {pattern}")
+            raise GuardrailViolation(
+                (
+                    "Sua mensagem foi bloqueada por uma regra de seguranca do agente. "
+                    "Se sua intencao for valida, reformule a pergunta de forma mais objetiva "
+                    "e sem comandos tecnicos."
+                )
+            )
     return cleaned
 
 
 def validate_sql_query(query: str, settings: Settings) -> str:
     normalized = f" {query.strip().lower()} "
     if not normalized.strip():
-        raise GuardrailViolation("Empty SQL query.")
+        raise GuardrailViolation(
+            "A consulta SQL veio vazia. Informe uma consulta de leitura para continuar."
+        )
 
     if ";" in query.strip().rstrip(";"):
-        raise GuardrailViolation("Multiple SQL statements are not allowed.")
+        raise GuardrailViolation(
+            "A Maria aceita apenas uma consulta SQL por vez. Remova comandos extras e tente novamente."
+        )
 
     if settings.allow_only_select_sql and not normalized.lstrip().startswith("select "):
-        raise GuardrailViolation("Only SELECT statements are allowed.")
+        raise GuardrailViolation(
+            "Por seguranca, a Maria aceita apenas consultas SQL de leitura usando SELECT."
+        )
 
     for token in FORBIDDEN_SQL_TOKENS:
         if token in normalized:
-            raise GuardrailViolation(f"Forbidden SQL token detected: {token.strip()}")
+            raise GuardrailViolation(
+                (
+                    "Sua consulta SQL contem uma instrucao bloqueada por seguranca. "
+                    "Use apenas consultas de leitura para analisar os dados."
+                )
+            )
 
     return query.strip().rstrip(";")
 
@@ -78,7 +103,10 @@ def trim_documents(documents: Iterable[Document], settings: Settings) -> list[Do
 def ensure_minimum_context(documents: list[Document], settings: Settings) -> list[Document]:
     if len(documents) < settings.min_retrieved_documents:
         raise GuardrailViolation(
-            "Not enough relevant context was retrieved to answer safely."
+            (
+                "A Maria nao encontrou contexto suficiente para responder com seguranca. "
+                "Tente ser mais especifico, mencionar periodo, setor, produto ou tipo de indicador."
+            )
         )
     return documents
 
@@ -118,4 +146,3 @@ def format_sources(documents: list[Document]) -> str:
             }
         )
     return json.dumps(payload, ensure_ascii=True, indent=2)
-

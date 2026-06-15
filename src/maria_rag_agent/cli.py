@@ -2,9 +2,37 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 
 from .config import get_settings
 from .database import init_database, seed_database
+from .guardrails import GuardrailViolation
+
+
+def print_user_error(message: str) -> None:
+    print(f"Maria: {message}", file=sys.stderr)
+
+
+def run_user_safe(action) -> int:
+    try:
+        action()
+        return 0
+    except GuardrailViolation as exc:
+        print_user_error(str(exc))
+        return 2
+    except ValueError as exc:
+        print_user_error(str(exc))
+        return 2
+    except RuntimeError as exc:
+        print_user_error(str(exc))
+        return 2
+    except Exception as exc:
+        print_user_error(
+            "Ocorreu um erro inesperado ao executar a solicitacao. "
+            "Revise a configuracao e tente novamente."
+        )
+        print_user_error(f"Detalhe tecnico: {exc}")
+        return 1
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -168,46 +196,54 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.command == "init-db":
-        handle_init_db()
-        return
+        raise SystemExit(run_user_safe(handle_init_db))
 
     if args.command == "seed-db":
-        handle_seed_db()
-        return
+        raise SystemExit(run_user_safe(handle_seed_db))
 
     if args.command == "reindex":
-        handle_reindex()
-        return
+        raise SystemExit(run_user_safe(handle_reindex))
 
     if args.command == "show-config":
-        handle_show_config()
-        return
+        raise SystemExit(run_user_safe(handle_show_config))
 
     if args.command == "ask":
-        handle_ask(args.question, args.conversation_id, args.user_id, args.store_id)
-        return
+        raise SystemExit(
+            run_user_safe(
+                lambda: handle_ask(
+                    args.question,
+                    args.conversation_id,
+                    args.user_id,
+                    args.store_id,
+                )
+            )
+        )
 
     if args.command == "list-conversations":
-        handle_list_conversations(args.user_id, args.limit)
-        return
+        raise SystemExit(run_user_safe(lambda: handle_list_conversations(args.user_id, args.limit)))
 
     if args.command == "show-conversation":
-        handle_show_conversation(args.conversation_id, args.limit)
-        return
+        raise SystemExit(
+            run_user_safe(lambda: handle_show_conversation(args.conversation_id, args.limit))
+        )
 
     if args.command == "add-user-memory":
-        handle_add_user_memory(
-            args.user_id,
-            args.content,
-            args.memory_type,
-            args.store_id,
-            args.priority,
+        raise SystemExit(
+            run_user_safe(
+                lambda: handle_add_user_memory(
+                    args.user_id,
+                    args.content,
+                    args.memory_type,
+                    args.store_id,
+                    args.priority,
+                )
+            )
         )
-        return
 
     if args.command == "list-user-memories":
-        handle_list_user_memories(args.user_id, args.store_id)
-        return
+        raise SystemExit(
+            run_user_safe(lambda: handle_list_user_memories(args.user_id, args.store_id))
+        )
 
     parser.error(f"Unsupported command: {args.command}")
 

@@ -123,7 +123,7 @@ O que faz:
 Exemplo pratico:
 
 ```env
-VECTOR_COLLECTION_NAME=maria_hortifrutti_v2
+VECTOR_COLLECTION_NAME=maria_autopecas_v2
 ```
 
 Resultado:
@@ -660,7 +660,7 @@ O que faz:
 Exemplo de memoria duravel:
 
 - `o gerente prefere respostas curtas`
-- `a loja centro prioriza ruptura zero em folhosos`
+- `a loja centro prioriza disponibilidade de itens de freio e lubrificantes`
 
 ### `MEMORY_RECENT_MESSAGES`
 
@@ -1273,4 +1273,4 @@ Se quiser, no proximo passo eu posso criar um segundo arquivo `.md` com um forma
 - valor recomendado
 - risco de aumentar
 - risco de diminuir
-- melhor uso no seu caso de gerente de hortifrutti
+- melhor uso no seu caso de gerente de loja de autopecas

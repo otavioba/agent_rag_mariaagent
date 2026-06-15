@@ -1,6 +1,6 @@
 # Maria RAG Agent
 
-Base profissional de estudo para uma assistente de loja chamada Maria, focada em gerentes de hortifrutti, com:
+Base profissional de estudo para uma assistente de loja chamada Maria, focada em gerentes de uma franquia de autopecas, com:
 
 - `SQLite` como fonte de verdade
 - `Chroma` como banco vetorial local
@@ -137,7 +137,7 @@ python -m maria_rag_agent.cli ask "Quais produtos mais geraram caixa nesta seman
 Continuar uma conversa existente:
 
 ```powershell
-python -m maria_rag_agent.cli ask "E quais setores podem cobrir uma ausencia no hortifrutti?" --conversation-id conv_demo_01 --user-id gerente_loja_01 --store-id loja_centro
+python -m maria_rag_agent.cli ask "E quais setores podem cobrir uma ausencia no vendas_balcao?" --conversation-id conv_demo_01 --user-id gerente_loja_01 --store-id loja_centro
 ```
 
 Listar conversas salvas:
@@ -205,7 +205,7 @@ Memoria:
 
 ## Tabelas criadas
 
-O projeto cria quatro tabelas principais para o contexto de hortifrutti:
+O projeto cria quatro tabelas principais para o contexto de autopecas:
 
 - `product_catalog`: cadastro de produtos com `sku`, descricao, categoria, estoque e precificacao
 - `sales`: vendas por item com `sku`, descricao, preco bruto, receita e geracao de caixa
@@ -214,11 +214,11 @@ O projeto cria quatro tabelas principais para o contexto de hortifrutti:
 
 ## Exemplos de perguntas
 
-- `Quais categorias mais geraram caixa entre 2026-06-01 e 2026-06-12?`
+- `Quais categorias mais geraram caixa entre 2026-06-09 e 2026-06-15?`
 - `Quais produtos estao abaixo do ponto de reposicao?`
-- `Quem do time ativo pode cobrir o setor de hortifrutti no turno da manha?`
+- `Quem do time ativo pode cobrir o setor de vendas_balcao no turno da manha?`
 - `Quais faltas recentes exigiram substituicao imediata?`
-- `Liste os funcionarios ativos do caixa e seus setores de apoio.`
+- `Liste os funcionarios ativos da televendas e seus setores de apoio.`
 
 ## Proximos passos naturais
 
