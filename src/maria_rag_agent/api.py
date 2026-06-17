@@ -15,6 +15,7 @@ from .database import (
     fetch_evolution_instance_state_by_name,
     init_database,
     list_evolution_instance_states,
+    register_processed_evolution_message,
     upsert_evolution_instance_state,
 )
 from .evolution import (
@@ -358,6 +359,7 @@ def evolution_webhook(
 
     chat_jid = info.get("Chat")
     sender_jid = info.get("Sender")
+    message_id = info.get("ID")
 
     if settings.evolution_ignore_group_messages and (
         bool(info.get("IsGroup")) or is_group_jid(chat_jid) or is_group_jid(sender_jid)
@@ -372,6 +374,13 @@ def evolution_webhook(
     sender_number = normalize_whatsapp_jid(sender_jid)
     if not sender_number:
         return {"received": True, "ignored": "missing_sender"}
+
+    if message_id and not register_processed_evolution_message(
+        settings=settings,
+        instance_id=str(instance_id),
+        message_id=str(message_id),
+    ):
+        return {"received": True, "ignored": "duplicate_message"}
 
     text = extract_text_from_message_data(data)
     if not text:

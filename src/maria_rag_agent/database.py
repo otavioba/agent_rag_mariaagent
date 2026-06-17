@@ -172,6 +172,16 @@ def init_database(settings: Settings) -> None:
                 """
             )
             cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS evolution_processed_messages (
+                    instance_id TEXT NOT NULL,
+                    message_id TEXT NOT NULL,
+                    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                    PRIMARY KEY (instance_id, message_id)
+                )
+                """
+            )
+            cursor.execute(
                 "CREATE INDEX IF NOT EXISTS idx_product_catalog_sku ON product_catalog(sku)"
             )
             cursor.execute("CREATE INDEX IF NOT EXISTS idx_sales_sale_date ON sales(sale_date)")
@@ -800,3 +810,25 @@ def list_evolution_instance_states(settings: Settings) -> list[DbRow]:
             )
             rows = cursor.fetchall()
     return rows
+
+
+def register_processed_evolution_message(
+    settings: Settings,
+    instance_id: str,
+    message_id: str,
+) -> bool:
+    init_database(settings)
+    with postgres_connection(settings) as connection:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                INSERT INTO evolution_processed_messages (instance_id, message_id)
+                VALUES (%s, %s)
+                ON CONFLICT (instance_id, message_id) DO NOTHING
+                RETURNING message_id
+                """,
+                (instance_id, message_id),
+            )
+            row = cursor.fetchone()
+        connection.commit()
+    return row is not None
